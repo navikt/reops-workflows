@@ -47,7 +47,7 @@ Kalleren må gi `id-token: write`, og `contents: write` ved deploy til `prod-gcp
 ```yaml
 jobs:
   build:
-    uses: navikt/reops-workflows/.github/workflows/build.yaml@<commit-sha>
+    uses: navikt/reops-workflows/.github/workflows/build.yaml@v1
     permissions:
       contents: read
       packages: read
@@ -57,7 +57,7 @@ jobs:
 
   deploy-dev:
     needs: build
-    uses: navikt/reops-workflows/.github/workflows/deploy.yaml@<commit-sha>
+    uses: navikt/reops-workflows/.github/workflows/deploy.yaml@v1
     permissions:
       contents: read
       id-token: write
@@ -68,4 +68,15 @@ jobs:
       image: ${{ needs.build.outputs.image }}
 ```
 
-Pin til en commit-SHA, slik at endringer her ikke endrer pipelines i applikasjonene uten en egen PR.
+## Versjonering
+
+Applikasjonene bruker `@v1`. Taggen `v1` flyttes til nyeste kompatible versjon, så endringer når alle applikasjonene uten en PR i hvert repo. Lag en ny hovedversjon (`v2`) ved endringer som krever endringer hos kallerne.
+
+Etter at en endring er merget til `main`:
+
+```bash
+git tag -a v1.2.0 -m "Kort beskrivelse"
+git tag -f v1 "v1.2.0^{commit}"
+git push origin v1.2.0
+git push -f origin v1
+```
