@@ -4,9 +4,13 @@ on:
   workflow_call:
     inputs:
       ref:
-        description: Branch, tag or commit to build
+        description: Branch, tag or commit to build. Defaults to the triggering commit.
         type: string
-        required: true
+        default: ''
+      push:
+        description: Push the image to the registry. Set to false to only check that the image builds.
+        type: boolean
+        default: true
       runner:
         type: string
         default: ubuntu-latest
@@ -19,7 +23,7 @@ on:
         default: ''
     outputs:
       image:
-        description: Image reference including digest
+        description: Image reference, including digest when pushed
         value: ${{ jobs.build.outputs.image }}
       source-sha:
         description: Commit the image was built from
@@ -27,11 +31,11 @@ on:
 
 jobs:
   build:
-    name: Build and push image
+    name: Build image
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 60
     outputs:
-      image: ${{ steps.push.outputs.image }}
+      image: ${{ steps.build.outputs.image }}
       source-sha: ${{ steps.source.outputs.sha }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -43,11 +47,12 @@ jobs:
         id: source
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push
-        id: push
+      - name: Build image
+        id: build
         uses: nais/docker-build-push@588f76a6f45aeb1e75d5e8417ec6ef6d79b2b39f # v0
         with:
           team: team-researchops
+          push_image: ${{ inputs.push }}
           pull: true
           no_cache: ${{ inputs.fresh }}
           build_args: |

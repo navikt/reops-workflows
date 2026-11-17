@@ -10,20 +10,21 @@ Repoet må være offentlig. Offentlige repoer, som `innblikk-frontend` og `innbl
 
 ### `build.yaml`
 
-Bygger og pusher et image med `nais/docker-build-push`.
+Bygger et image med `nais/docker-build-push` og pusher det til Nais-registeret.
 
 | Input | Beskrivelse |
 |---|---|
-| `ref` | Branch, tag eller commit som skal bygges (påkrevd) |
+| `ref` | Branch, tag eller commit som skal bygges. Standard er commiten som startet workflowen |
+| `push` | Push imaget. Sett til `false` i CI for bare å sjekke at imaget bygger. Standard er `true` |
 | `runner` | Runner for bygget. Standard er `ubuntu-latest` |
 | `fresh` | Bygg uten lagcache, slik at oppdaterte base-images og pakker kommer med |
 | `build-args` | Ekstra build-args, én per linje. `GIT_SHA` settes automatisk |
 
-Outputs: `image` (med digest) og `source-sha`.
+Outputs: `image` (med digest når imaget er pushet) og `source-sha`.
 
 `NODE_AUTH_TOKEN` sendes alltid som build-secret, slik at private `@navikt`-pakker kan installeres. Dockerfiler som ikke bruker den, ignorerer den.
 
-Kalleren må gi `contents: read`, `packages: read` og `id-token: write`.
+Kalleren må gi `contents: read`, `packages: read` og `id-token: write`, også når `push` er `false`, fordi Nais-innloggingen alltid kjøres. Workflows som kaller en workflow som bruker denne, må også gi `id-token: write`.
 
 ### `deploy.yaml`
 
