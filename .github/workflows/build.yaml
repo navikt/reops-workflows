@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Branch, tag or commit to build
+        type: string
+        required: true
+      runner:
+        type: string
+        default: ubuntu-latest
+      fresh:
+        description: Build without layer cache, to pick up patched base images and packages
+        type: boolean
+        default: false
+      build-args:
+        type: string
+        default: ''
+    outputs:
+      image:
+        description: Image reference including digest
+        value: ${{ jobs.build.outputs.image }}
+      source-sha:
+        description: Commit the image was built from
+        value: ${{ jobs.build.outputs.source-sha }}
+
+jobs:
+  build:
+    name: Build and push image
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 60
+    outputs:
+      image: ${{ steps.push.outputs.image }}
+      source-sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+
+      - name: Resolve source commit
+        id: source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        id: push
+        uses: nais/docker-build-push@588f76a6f45aeb1e75d5e8417ec6ef6d79b2b39f # v0
+        with:
+          team: team-researchops
+          pull: true
+          no_cache: ${{ inputs.fresh }}
+          build_args: |
+            GIT_SHA=${{ steps.source.outputs.sha }}
+            ${{ inputs.build-args }}
+          build_secrets: |
+            "NODE_AUTH_TOKEN=${{ github.token }}"

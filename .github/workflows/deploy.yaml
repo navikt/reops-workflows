@@ -1,0 +1,56 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      cluster:
+        description: dev-gcp or prod-gcp. Also used as the GitHub environment name.
+        type: string
+        required: true
+      manifest:
+        type: string
+        required: true
+      ref:
+        description: Commit to read the manifest from. Defaults to the triggering commit.
+        type: string
+        default: ''
+      image:
+        type: string
+        required: true
+      source-sha:
+        description: Commit the image was built from. Tagged as a release after a production deploy.
+        type: string
+        default: ''
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.cluster }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.cluster }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      # Waits until the new pods are ready, and fails if the rollout does not succeed.
+      - name: Deploy
+        uses: nais/deploy/actions/deploy@7b60caaded00332e9aa117a8342daa0876851dfe # v2
+        env:
+          CLUSTER: ${{ inputs.cluster }}
+          RESOURCE: ${{ inputs.manifest }}
+          VAR: image=${{ inputs.image }}
+
+      # Nightly refresh rebuilds the newest release tag; rollback redeploys the image in a release tag.
+      - name: Tag release
+        if: inputs.cluster == 'prod-gcp'
+        env:
+          SOURCE_SHA: ${{ inputs.source-sha }}
+          IMAGE: ${{ inputs.image }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --depth=1 origin "$SOURCE_SHA"
+          TAG="release-$(date -u +%Y%m%d-%H%M%S)"
+          git tag -a "$TAG" "$SOURCE_SHA" -m "$IMAGE"
+          git push origin "$TAG"
