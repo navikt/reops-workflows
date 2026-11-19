@@ -29,13 +29,13 @@ jobs:
     timeout-minutes: 20
     environment: ${{ inputs.cluster }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.ref }}
 
       # Waits until the new pods are ready, and fails if the rollout does not succeed.
       - name: Deploy
-        uses: nais/deploy/actions/deploy@7b60caaded00332e9aa117a8342daa0876851dfe # v2
+        uses: nais/deploy/actions/deploy@6fe576e10c7a325643bad96566bd6cb180a2f782 # v2
         env:
           CLUSTER: ${{ inputs.cluster }}
           RESOURCE: ${{ inputs.manifest }}
