@@ -24,7 +24,7 @@ Outputs: `image` (med digest når imaget er pushet) og `source-sha`.
 
 `NODE_AUTH_TOKEN` sendes alltid som build-secret, slik at private `@navikt`-pakker kan installeres. Dockerfiler som ikke bruker den, ignorerer den.
 
-Kalleren må gi `contents: read`, `packages: read` og `id-token: write`, også når `push` er `false`, fordi Nais-innloggingen alltid kjøres. Workflows som kaller en workflow som bruker denne, må også gi `id-token: write`.
+Kalleren må gi `contents: read`, `packages: read` og `id-token: write`, også når `push` er `false`, fordi Nais-innloggingen alltid kjøres.
 
 ### `deploy.yaml`
 
@@ -79,4 +79,26 @@ git tag -a v1.2.0 -m "Kort beskrivelse"
 git tag -f v1 "v1.2.0^{commit}"
 git push origin v1.2.0
 git push -f origin v1
+```
+
+## Actions er låst til commit-SHA
+
+Actions som workflowene bruker, refereres med full commit-SHA og versjonen som kommentar:
+
+```yaml
+uses: nais/deploy/actions/deploy@7b60caaded00332e9aa117a8342daa0876851dfe # v2
+```
+
+Nais gjør det samme i for eksempel [`nais/docker-build-push`](https://github.com/nais/docker-build-push/blob/main/action.yml).
+
+En versjonstag som `@v2` kan flyttes av den som eier actionen, slik at koden bak endres uten at vi merker det. Det har skjedd i praksis: i mars 2025 ble taggene til `tj-actions/changed-files` flyttet til en ondsinnet commit som lekket hemmeligheter. En commit-SHA kan ikke endres ([GitHub-dokumentasjon](https://docs.github.com/en/actions/reference/security/secure-use#using-third-party-actions)).
+
+Det er ekstra viktig her, fordi workflowene har rettigheter til å logge inn i Nais (`id-token: write`) og lage release-tagger (`contents: write`).
+
+Dependabot oppdaterer SHA-en og versjonskommentaren sammen. Den venter tre dager etter en ny versjon før den lager PR, slik at kompromitterte versjoner som regel blir oppdaget og trukket først.
+
+Når du legger til en ny action, slå opp commit-SHA-en for versjonen du vil bruke. Står det en linje som slutter på `^{}`, er det den SHA-en som er commiten:
+
+```bash
+git ls-remote --tags https://github.com/<eier>/<action> 'v2*'
 ```
