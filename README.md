@@ -86,7 +86,7 @@ git push -f origin v1
 Actions som workflowene bruker, refereres med full commit-SHA og versjonen som kommentar:
 
 ```yaml
-uses: nais/deploy/actions/deploy@7b60caaded00332e9aa117a8342daa0876851dfe # v2
+uses: nais/deploy/actions/deploy@6fe576e10c7a325643bad96566bd6cb180a2f782 # v2
 ```
 
 Nais gjør det samme i for eksempel [`nais/docker-build-push`](https://github.com/nais/docker-build-push/blob/main/action.yml).
