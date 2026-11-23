@@ -35,7 +35,7 @@ jobs:
 
       # Waits until the new pods are ready, and fails if the rollout does not succeed.
       - name: Deploy
-        uses: nais/deploy/actions/deploy@6fe576e10c7a325643bad96566bd6cb180a2f782 # v2
+        uses: nais/deploy/actions/deploy@427e29c94d911626a023a76f402f6dcae1f840b7 # v3
         env:
           CLUSTER: ${{ inputs.cluster }}
           RESOURCE: ${{ inputs.manifest }}
