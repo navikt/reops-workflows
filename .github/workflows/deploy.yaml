@@ -41,8 +41,9 @@ jobs:
           RESOURCE: ${{ inputs.manifest }}
           VAR: image=${{ inputs.image }}
 
-      # Release tags record which code runs in prod. Nightly refresh rebuilds the newest one and
-      # leaves out source-sha, so it does not add a tag. Rollback redeploys the image in a tag.
+      # The newest release tag is the code in prod, and all release tags form the prod history.
+      # Nightly refresh rebuilds the newest one and leaves out source-sha, so it does not add a tag.
+      # Rollback redeploys the image in a tag.
       - name: Tag release
         if: inputs.cluster == 'prod-gcp' && inputs.source-sha != ''
         env:

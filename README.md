@@ -38,7 +38,7 @@ Deployer et image med `nais/deploy` og venter til de nye podene er klare.
 | `image` | Image som skal deployes |
 | `source-sha` | Commiten imaget er bygget fra. Settes den ved deploy til `prod-gcp`, lages en release-tag |
 
-Etter en vellykket deploy til `prod-gcp` med `source-sha` lages en annotert tag, `release-<tidspunkt>`, på kildecommiten. Tag-meldingen er image-referansen. Taggene viser hvilken kode som kjører i prod. Nattlig ombygging bygger den nyeste release-taggen på nytt uten å sende `source-sha`, så den lager ingen ny tag. Rollback deployer imaget i en valgt release-tag og lager en ny tag, slik at nattlig ombygging bygger koden det ble rullet tilbake til.
+Etter en vellykket deploy til `prod-gcp` med `source-sha` lages en annotert tag, `release-<tidspunkt>`, på kildecommiten. Tag-meldingen er image-referansen. Den nyeste release-taggen viser hvilken kode som kjører i prod nå, og alle release-taggene til sammen er en historikk over hva som er deployet til prod. Nattlig ombygging bygger den nyeste release-taggen på nytt uten å sende `source-sha`, så den lager ingen ny tag. Rollback deployer imaget i en valgt release-tag og lager en ny tag, slik at nattlig ombygging bygger koden det ble rullet tilbake til. Se [Tagger og images](docs/tagger-og-images.md) for et eksempel.
 
 Kalleren må gi `id-token: write`, og `contents: write` ved deploy til `prod-gcp`.
 
