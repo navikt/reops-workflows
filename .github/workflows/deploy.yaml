@@ -18,7 +18,7 @@ on:
         type: string
         required: true
       source-sha:
-        description: Commit the image was built from. Tagged as a release after a production deploy.
+        description: Commit the image was built from. When set, a production deploy is tagged as a release.
         type: string
         default: ''
 
@@ -35,15 +35,16 @@ jobs:
 
       # Waits until the new pods are ready, and fails if the rollout does not succeed.
       - name: Deploy
-        uses: nais/deploy/actions/deploy@6fe576e10c7a325643bad96566bd6cb180a2f782 # v2
+        uses: nais/deploy/actions/deploy@427e29c94d911626a023a76f402f6dcae1f840b7 # v3
         env:
           CLUSTER: ${{ inputs.cluster }}
           RESOURCE: ${{ inputs.manifest }}
           VAR: image=${{ inputs.image }}
 
-      # Nightly refresh rebuilds the newest release tag; rollback redeploys the image in a release tag.
+      # Release tags record which code runs in prod. Nightly refresh rebuilds the newest one and
+      # leaves out source-sha, so it does not add a tag. Rollback redeploys the image in a tag.
       - name: Tag release
-        if: inputs.cluster == 'prod-gcp'
+        if: inputs.cluster == 'prod-gcp' && inputs.source-sha != ''
         env:
           SOURCE_SHA: ${{ inputs.source-sha }}
           IMAGE: ${{ inputs.image }}

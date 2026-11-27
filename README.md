@@ -36,11 +36,13 @@ Deployer et image med `nais/deploy` og venter til de nye podene er klare.
 | `manifest` | Sti til Nais-manifestet |
 | `ref` | Commiten manifestet hentes fra. Standard er commiten som startet workflowen |
 | `image` | Image som skal deployes |
-| `source-sha` | Commiten imaget er bygget fra. Påkrevd for `prod-gcp` |
+| `source-sha` | Commiten imaget er bygget fra. Settes den ved deploy til `prod-gcp`, lages en release-tag |
 
-Etter en vellykket deploy til `prod-gcp` lages en annotert tag, `release-<tidspunkt>`, på kildecommiten. Tag-meldingen er image-referansen. Nattlig ombygging bygger den nyeste release-taggen på nytt, og rollback deployer imaget i en valgt release-tag.
+Etter en vellykket deploy til `prod-gcp` med `source-sha` lages en annotert tag, `release-<tidspunkt>`, på kildecommiten. Tag-meldingen er image-referansen. Taggene viser hvilken kode som kjører i prod. Nattlig ombygging bygger den nyeste release-taggen på nytt uten å sende `source-sha`, så den lager ingen ny tag. Rollback deployer imaget i en valgt release-tag og lager en ny tag, slik at nattlig ombygging bygger koden det ble rullet tilbake til.
 
 Kalleren må gi `id-token: write`, og `contents: write` ved deploy til `prod-gcp`.
+
+`nais/deploy` v3 deployer med `nais apply`, som ignorerer `metadata.annotations` i manifestet ([CLI-dokumentasjon](https://cli.nais.io/nais_apply.html)). Deployen feiler ikke, men annotasjonene blir ikke brukt. Har manifestet annotasjoner, finn en annen løsning før appen tar i bruk `deploy.yaml`.
 
 ## Bruk
 
@@ -86,7 +88,7 @@ git push -f origin v1
 Actions som workflowene bruker, refereres med full commit-SHA og versjonen som kommentar:
 
 ```yaml
-uses: nais/deploy/actions/deploy@6fe576e10c7a325643bad96566bd6cb180a2f782 # v2
+uses: nais/deploy/actions/deploy@427e29c94d911626a023a76f402f6dcae1f840b7 # v3
 ```
 
 Nais gjør det samme i for eksempel [`nais/docker-build-push`](https://github.com/nais/docker-build-push/blob/main/action.yml).
